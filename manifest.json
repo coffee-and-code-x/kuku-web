@@ -1,18 +1,1 @@
-{
-  "name": "さまよう九九",
-  "short_name": "さまよう九九",
-  "description": "九九のゲームでコインを集めてガチャを回そう",
-  "start_url": "./",
-  "display": "standalone",
-  "orientation": "portrait",
-  "background_color": "#fffbeb",
-  "theme_color": "#f59e0b",
-  "icons": [
-    {
-      "src": "./favicon.svg",
-      "sizes": "any",
-      "type": "image/svg+xml",
-      "purpose": "any"
-    }
-  ]
-}
+{"name":"さまよう九九","short_name":"さまよう九九","description":"九九のゲームでコインを集めてガチャを回そう","start_url":"./","display":"standalone","orientation":"portrait","background_color":"#fffbeb","theme_color":"#f59e0b","icons":[{"src":"./icon-192.png","sizes":"192x192","type":"image/png","purpose":"any"},{"src":"./icon-512.png","sizes":"512x512","type":"image/png","purpose":"any"}]}
