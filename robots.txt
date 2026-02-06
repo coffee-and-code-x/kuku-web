@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://coffee-and-code-x.github.io/kuku-web/sitemap.xml
