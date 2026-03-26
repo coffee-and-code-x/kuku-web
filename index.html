@@ -32,6 +32,160 @@
     -->
     <script type="module" crossorigin src="/kuku-web/assets/index-DRYino-_.js"></script>
     <link rel="stylesheet" crossorigin href="/kuku-web/assets/index-C5evV1Ov.css">
+    <style>
+      /* ========================================
+         ENHANCED GACHA ANIMATIONS
+         ======================================== */
+
+      /* --- Machine: faster spin + bounce --- */
+      .gacha-machine--rolling {
+        animation:
+          gacha-spin .18s linear infinite,
+          gacha-machine-glow .5s ease-in-out infinite alternate,
+          gacha-bounce .4s ease-in-out infinite alternate !important;
+      }
+      @keyframes gacha-bounce {
+        from { transform: scale(1.0); }
+        to   { transform: scale(1.14); }
+      }
+
+      /* --- Machine glow: much brighter --- */
+      @keyframes gacha-machine-glow {
+        from { box-shadow: 0 0 0 4px #f59e0b66, 0 8px 32px #ea580c59, inset 0 2px 12px #ffffff80; }
+        to   { box-shadow: 0 0 56px 24px #f59e0bcc, 0 16px 64px #ea580ccc, 0 0 0 14px #fde68a55, inset 0 2px 12px #ffff; }
+      }
+
+      /* --- Aura: bigger + faster --- */
+      .gacha-machine-wrap--rolling::before {
+        background: radial-gradient(circle, rgba(234,88,12,.55) 0%, rgba(245,158,11,.3) 40%, transparent 70%) !important;
+        animation: gacha-aura .4s ease-in-out infinite alternate !important;
+      }
+
+      /* --- Extra pulsing ring around machine --- */
+      .gacha-machine-wrap--rolling::after {
+        content: "";
+        position: absolute;
+        inset: -52px;
+        border-radius: 50%;
+        border: 4px solid rgba(245, 158, 11, 0.9);
+        animation: gacha-ring-expand .65s ease-out infinite;
+        pointer-events: none;
+      }
+      @keyframes gacha-ring-expand {
+        0%   { transform: scale(0.55); opacity: 1; }
+        100% { transform: scale(1.25); opacity: 0; }
+      }
+
+      /* --- Ball pop: more dramatic bounce --- */
+      @keyframes gacha-ball-pop {
+        0%   { transform: scale(0.1) rotate(-30deg) translateY(30px); opacity: 0; }
+        55%  { transform: scale(1.28) rotate(8deg) translateY(-6px);  opacity: 1; }
+        75%  { transform: scale(0.92) rotate(-3deg) translateY(2px); }
+        90%  { transform: scale(1.06) rotate(1deg); }
+        100% { transform: scale(1) rotate(0deg) translateY(0); opacity: 1; }
+      }
+
+      /* --- Shimmer helper (reused across rarities) --- */
+      @keyframes gacha-shimmer {
+        from { left: -80%; }
+        to   { left: 160%; }
+      }
+
+      /* --- Rare: shimmer scan line --- */
+      .gacha-ball-result--rare { position: relative; overflow: hidden; }
+      .gacha-ball-result--rare::after {
+        content: "";
+        position: absolute;
+        top: 0; left: -80%; width: 55%; height: 100%;
+        background: linear-gradient(105deg, transparent, rgba(255,255,255,0.55), transparent);
+        animation: gacha-shimmer 2.8s linear .9s infinite;
+        pointer-events: none;
+      }
+
+      /* --- SuperRare: shimmer + pulse glow --- */
+      .gacha-ball-result--superRare {
+        position: relative; overflow: hidden;
+        animation:
+          gacha-ball-pop .7s cubic-bezier(.34,1.56,.64,1),
+          gacha-superrare-pulse 1s ease-in-out .8s infinite alternate !important;
+      }
+      .gacha-ball-result--superRare::after {
+        content: "";
+        position: absolute;
+        top: 0; left: -80%; width: 55%; height: 100%;
+        background: linear-gradient(105deg, transparent, rgba(255,255,255,0.65), transparent);
+        animation: gacha-shimmer 1.8s linear .8s infinite;
+        pointer-events: none;
+      }
+      @keyframes gacha-superrare-pulse {
+        from { box-shadow: 0 4px 24px #8b5cf666; }
+        to   { box-shadow: 0 8px 56px #8b5cf6cc, 0 0 28px 6px #c4b5fdaa; }
+      }
+
+      /* --- UltraRare: rainbow cycling border + fast shimmer --- */
+      .gacha-ball-result--ultraRare {
+        position: relative; overflow: hidden;
+        animation:
+          gacha-ball-pop .7s cubic-bezier(.34,1.56,.64,1),
+          gacha-ultra-rainbow 2s linear .8s infinite !important;
+      }
+      .gacha-ball-result--ultraRare::after {
+        content: "";
+        position: absolute;
+        top: 0; left: -80%; width: 55%; height: 100%;
+        background: linear-gradient(105deg, transparent, rgba(255,255,255,0.72), transparent);
+        animation: gacha-shimmer 1.3s linear .8s infinite;
+        pointer-events: none;
+      }
+      @keyframes gacha-ultra-rainbow {
+        0%   { border-color: #f59e0b; box-shadow: 0 0 24px 6px #f59e0baa, 0 4px 24px #f59e0b80; }
+        20%  { border-color: #ef4444; box-shadow: 0 0 24px 6px #ef4444aa, 0 4px 24px #ef444480; }
+        40%  { border-color: #a855f7; box-shadow: 0 0 24px 6px #a855f7aa, 0 4px 24px #a855f780; }
+        60%  { border-color: #3b82f6; box-shadow: 0 0 24px 6px #3b82f6aa, 0 4px 24px #3b82f680; }
+        80%  { border-color: #22c55e; box-shadow: 0 0 24px 6px #22c55eaa, 0 4px 24px #22c55e80; }
+        100% { border-color: #f59e0b; box-shadow: 0 0 24px 6px #f59e0baa, 0 4px 24px #f59e0b80; }
+      }
+
+      /* --- Legend: maximum spectacle --- */
+      .gacha-ball-result--legend {
+        position: relative; overflow: hidden;
+        animation:
+          gacha-ball-pop .4s cubic-bezier(.34,1.9,.64,1),
+          gacha-legend-ultra 1.4s ease-in-out .5s infinite alternate !important;
+      }
+      .gacha-ball-result--legend::after {
+        content: "";
+        position: absolute;
+        top: 0; left: -80%; width: 55%; height: 100%;
+        background: linear-gradient(105deg, transparent, rgba(255,255,255,0.88), transparent);
+        animation: gacha-shimmer .75s linear .5s infinite;
+        pointer-events: none;
+      }
+      @keyframes gacha-legend-ultra {
+        0% {
+          border-color: #eab308;
+          box-shadow: 0 4px 28px #eab30899, 0 0 0 2px #eab30866;
+          filter: brightness(1);
+          transform: scale(1);
+        }
+        33% {
+          border-color: #ff6b6b;
+          box-shadow: 0 8px 56px #ff6b6bcc, 0 0 0 4px #ff6b6b55;
+          filter: brightness(1.18) saturate(1.3);
+        }
+        66% {
+          border-color: #a855f7;
+          box-shadow: 0 8px 56px #a855f7cc, 0 0 0 6px #a855f755;
+          filter: brightness(1.22) saturate(1.4);
+        }
+        100% {
+          border-color: #ffd700;
+          box-shadow: 0 12px 72px #eab308ff, 0 0 56px 14px #eab30844, 0 0 0 10px #ffd70033;
+          filter: brightness(1.35) drop-shadow(0 0 20px #ffd700);
+          transform: scale(1.04);
+        }
+      }
+    </style>
   </head>
   <body>
     <div id="root"></div>
