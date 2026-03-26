@@ -355,10 +355,12 @@
         var grid = document.querySelector('.choices-grid');
         if (!grid) return;
         grid.style.pointerEvents = 'none';
-        setTimeout(function() {
+        // マウスが実際に動いたときだけ戻す（戻した瞬間にhoverが再計算されるため）
+        document.addEventListener('mousemove', function restore() {
           var g = document.querySelector('.choices-grid');
           if (g) g.style.pointerEvents = '';
-        }, 200);
+          document.removeEventListener('mousemove', restore);
+        });
       }, true);
     </script>
   </body>
