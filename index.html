@@ -349,19 +349,293 @@
   <body>
     <div id="root"></div>
     <script>
+      // =====================================================================
       // Fix ghost hover: 選択肢クリック直後に次の問題の選択肢がhover状態になるのを防ぐ
+      // =====================================================================
       document.addEventListener('click', function(e) {
         if (!e.target.closest('.choice-btn')) return;
         var grid = document.querySelector('.choices-grid');
         if (!grid) return;
         grid.style.pointerEvents = 'none';
-        // マウスが実際に動いたときだけ戻す（戻した瞬間にhoverが再計算されるため）
         document.addEventListener('mousemove', function restore() {
           var g = document.querySelector('.choices-grid');
           if (g) g.style.pointerEvents = '';
           document.removeEventListener('mousemove', restore);
         });
       }, true);
+
+      // =====================================================================
+      // アイテムコレクション & ボーダー表示
+      // =====================================================================
+      (function () {
+        // --- 定数 ---
+        var ITEMS = {
+          normal:    { emoji: '👾', label: 'ノーマル',     color: '#00ff41' },
+          rare:      { emoji: '🛸', label: 'レア',         color: '#00ffff' },
+          superRare: { emoji: '🚀', label: 'スーパーレア', color: '#ff00ff' },
+          ultraRare: { emoji: '⭐', label: 'ウルトラレア', color: '#ffff00' },
+          legend:    { emoji: '👑', label: 'レジェンド',   color: '#ff0080' },
+        };
+        var RARITY_ORDER = ['normal', 'rare', 'superRare', 'ultraRare', 'legend'];
+        var MAX_BORDER = 20;
+        var KEY_ITEMS  = 'kuku_items';
+        var KEY_BORDER = 'kuku_border';
+
+        // --- localStorage ユーティリティ ---
+        function loadItems() {
+          try { return JSON.parse(localStorage.getItem(KEY_ITEMS) || '{}'); } catch(e) { return {}; }
+        }
+        function saveItems(items) {
+          localStorage.setItem(KEY_ITEMS, JSON.stringify(items));
+        }
+        function loadBorder() {
+          try { return JSON.parse(localStorage.getItem(KEY_BORDER) || '[]'); } catch(e) { return []; }
+        }
+        function saveBorder(border) {
+          localStorage.setItem(KEY_BORDER, JSON.stringify(border));
+        }
+        function countOf(items, type) { return items[type] || 0; }
+
+        // --- ガチャ検知: localStorage.setItem をインターセプト ---
+        var _origSetItem = Storage.prototype.setItem;
+        var prevLevel = parseInt(localStorage.getItem('kuku_level') || '1', 10);
+
+        Storage.prototype.setItem = function(key, value) {
+          _origSetItem.call(this, key, value);
+          if (this !== localStorage) return;
+          if (key === 'kuku_level') {
+            var newLevel = parseInt(value, 10);
+            var diff = newLevel - prevLevel;
+            prevLevel = newLevel;
+            if (diff > 0) {
+              var rarity = diff >= 100 ? 'legend'
+                         : diff >= 30  ? 'ultraRare'
+                         : diff >= 10  ? 'superRare'
+                         : diff >= 3   ? 'rare'
+                         :               'normal';
+              var items = loadItems();
+              items[rarity] = (items[rarity] || 0) + 1;
+              saveItems(items);
+              renderBorder();
+              showItemToast(rarity);
+            }
+          }
+        };
+
+        // --- トースト通知 ---
+        function showItemToast(type) {
+          var def = ITEMS[type];
+          var toast = document.createElement('div');
+          toast.textContent = def.emoji + ' ' + def.label + ' をゲット！';
+          toast.style.cssText = [
+            'position:fixed', 'bottom:80px', 'left:50%', 'transform:translateX(-50%)',
+            'background:#0a0e14', 'color:' + def.color,
+            'border:2px solid ' + def.color,
+            'box-shadow:0 0 16px ' + def.color + '88',
+            'padding:10px 20px', 'font-family:"Press Start 2P",monospace',
+            'font-size:0.6rem', 'z-index:10000', 'white-space:nowrap',
+            'animation:toast-in .3s ease',
+          ].join(';');
+          document.body.appendChild(toast);
+          setTimeout(function() {
+            toast.style.transition = 'opacity .4s';
+            toast.style.opacity = '0';
+            setTimeout(function() { toast.remove(); }, 400);
+          }, 2000);
+        }
+
+        // --- ボーダーレンダリング ---
+        var borderEl = null;
+        function renderBorder() {
+          if (!borderEl) return;
+          var border = loadBorder();
+          borderEl.innerHTML = '';
+
+          var isWide = window.innerWidth > 460;
+          var slots = isWide ? MAX_BORDER : Math.min(MAX_BORDER / 2, 10);
+
+          border.slice(0, slots).forEach(function(entry, i) {
+            var def = ITEMS[entry.type];
+            if (!def) return;
+            var item = document.createElement('div');
+            item.className = 'kuku-border-item';
+            item.textContent = def.emoji;
+            item.title = def.label + ' (クリックで取り外し)';
+            item.style.color = def.color;
+            item.style.textShadow = '0 0 8px ' + def.color;
+            item.dataset.idx = i;
+
+            // 配置座標
+            var pos = getSlotPos(i, slots, isWide);
+            item.style.left = pos.x + 'px';
+            item.style.top  = pos.y + 'px';
+
+            item.addEventListener('click', function() {
+              removeFromBorder(parseInt(this.dataset.idx));
+            });
+            borderEl.appendChild(item);
+          });
+        }
+
+        function getSlotPos(i, total, isWide) {
+          if (isWide) {
+            // 左右の余白に縦並び
+            var half = Math.ceil(total / 2);
+            if (i < half) {
+              // 左側
+              var margin = (window.innerWidth - Math.min(window.innerWidth, 420)) / 2;
+              return { x: Math.max(4, margin - 48), y: 60 + i * 52 };
+            } else {
+              // 右側
+              var marginR = (window.innerWidth + Math.min(window.innerWidth, 420)) / 2;
+              return { x: Math.min(window.innerWidth - 44, marginR + 8), y: 60 + (i - half) * 52 };
+            }
+          } else {
+            // 上部に横並び
+            return { x: 8 + i * 44, y: 8 };
+          }
+        }
+
+        function removeFromBorder(idx) {
+          var border = loadBorder();
+          if (idx < 0 || idx >= border.length) return;
+          border.splice(idx, 1);
+          saveBorder(border);
+          renderBorder();
+          renderPanel();
+        }
+
+        // --- コレクションパネル ---
+        var panelEl  = null;
+        var panelOpen = false;
+
+        function renderPanel() {
+          if (!panelEl || !panelOpen) return;
+          var items  = loadItems();
+          var border = loadBorder();
+
+          var html = '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">'
+            + '<span>コレクション</span>'
+            + '<button id="kuku-panel-close" style="background:none;border:none;color:#00ff41;font-family:inherit;font-size:1.2rem;cursor:pointer;line-height:1">✕</button>'
+            + '</div>';
+
+          RARITY_ORDER.forEach(function(type) {
+            var def   = ITEMS[type];
+            var count = countOf(items, type);
+            var inBorder = border.filter(function(b) { return b.type === type; }).length;
+            var canAdd = count > inBorder && border.length < MAX_BORDER;
+
+            html += '<div style="display:flex;align-items:center;gap:12px;padding:8px 0;border-bottom:1px solid #00ff4120">'
+              + '<span style="font-size:1.6rem">' + def.emoji + '</span>'
+              + '<div style="flex:1">'
+              +   '<div style="color:' + def.color + ';font-size:0.55rem;margin-bottom:2px">' + def.label + '</div>'
+              +   '<div style="font-size:0.5rem;color:#00bb30">所持: ' + count + '  表示中: ' + inBorder + '</div>'
+              + '</div>'
+              + '<button data-add="' + type + '" '
+              +   'style="font-family:inherit;font-size:0.5rem;padding:6px 10px;'
+              +   'background:#0a0e14;border:1px solid ' + (canAdd ? def.color : '#333') + ';'
+              +   'color:' + (canAdd ? def.color : '#444') + ';cursor:' + (canAdd ? 'pointer' : 'default') + '"'
+              +   (canAdd ? '' : ' disabled') + '>'
+              +   '+ 飾る'
+              + '</button>'
+              + '</div>';
+          });
+
+          panelEl.innerHTML = html;
+
+          document.getElementById('kuku-panel-close').onclick = function() {
+            panelOpen = false;
+            panelEl.style.display = 'none';
+          };
+
+          panelEl.querySelectorAll('[data-add]').forEach(function(btn) {
+            btn.addEventListener('click', function() {
+              var type = this.dataset.add;
+              addToBorder(type);
+            });
+          });
+        }
+
+        function addToBorder(type) {
+          var items  = loadItems();
+          var border = loadBorder();
+          var inBorder = border.filter(function(b) { return b.type === type; }).length;
+          if (countOf(items, type) <= inBorder) return;
+          if (border.length >= MAX_BORDER) return;
+          border.push({ type: type, id: type + '-' + Date.now() });
+          saveBorder(border);
+          renderBorder();
+          renderPanel();
+        }
+
+        // --- 初期化 ---
+        document.addEventListener('DOMContentLoaded', function() {
+          // トーストアニメーション
+          var styleEl = document.createElement('style');
+          styleEl.textContent = '@keyframes toast-in{from{opacity:0;transform:translateX(-50%) translateY(10px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}';
+          document.head.appendChild(styleEl);
+
+          // ボーダーオーバーレイ
+          borderEl = document.createElement('div');
+          borderEl.id = 'kuku-border-overlay';
+          borderEl.style.cssText = 'position:fixed;inset:0;pointer-events:none;z-index:9000';
+          document.body.appendChild(borderEl);
+
+          // ボーダーアイテムのスタイル
+          var itemStyle = document.createElement('style');
+          itemStyle.textContent = '.kuku-border-item{'
+            + 'position:absolute;font-size:1.6rem;cursor:pointer;'
+            + 'pointer-events:auto;transition:transform .15s;'
+            + 'user-select:none;line-height:1'
+            + '}'
+            + '.kuku-border-item:hover{transform:scale(1.3)}';
+          document.head.appendChild(itemStyle);
+
+          // コレクションボタン
+          var btn = document.createElement('button');
+          btn.id = 'kuku-collection-btn';
+          btn.textContent = '👾';
+          btn.title = 'コレクション';
+          btn.style.cssText = [
+            'position:fixed', 'bottom:16px', 'right:16px',
+            'width:48px', 'height:48px', 'border-radius:0',
+            'background:#0a0e14', 'border:2px solid #00ff41',
+            'color:#00ff41', 'font-size:1.4rem',
+            'box-shadow:0 0 12px #00ff4166',
+            'cursor:pointer', 'z-index:9500',
+            'display:flex', 'align-items:center', 'justify-content:center',
+          ].join(';');
+          document.body.appendChild(btn);
+
+          // コレクションパネル
+          panelEl = document.createElement('div');
+          panelEl.id = 'kuku-collection-panel';
+          panelEl.style.cssText = [
+            'position:fixed', 'bottom:72px', 'right:16px',
+            'width:280px', 'background:#0a0e14',
+            'border:2px solid #00ff41',
+            'box-shadow:0 0 24px #00ff4155',
+            'padding:16px',
+            'font-family:"Press Start 2P",monospace',
+            'font-size:0.6rem', 'color:#00ff41',
+            'z-index:9500', 'display:none',
+            'max-height:70vh', 'overflow-y:auto',
+          ].join(';');
+          document.body.appendChild(panelEl);
+
+          btn.addEventListener('click', function() {
+            panelOpen = !panelOpen;
+            panelEl.style.display = panelOpen ? 'block' : 'none';
+            if (panelOpen) renderPanel();
+          });
+
+          // ウィンドウリサイズ対応
+          window.addEventListener('resize', renderBorder);
+
+          // 初期描画
+          renderBorder();
+        });
+      })();
     </script>
   </body>
 </html>
