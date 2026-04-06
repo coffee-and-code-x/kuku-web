@@ -460,7 +460,7 @@
             var item = document.createElement('div');
             item.className = 'kuku-border-item';
             item.textContent = def.emoji;
-            item.title = def.label + ' (クリックで取り外し)';
+            item.title = def.label;
             item.style.color = def.color;
             item.style.textShadow = '0 0 8px ' + def.color;
             item.dataset.idx = i;
@@ -470,9 +470,6 @@
             item.style.left = pos.x + 'px';
             item.style.top  = pos.y + 'px';
 
-            item.addEventListener('click', function() {
-              removeFromBorder(parseInt(this.dataset.idx));
-            });
             borderEl.appendChild(item);
           });
         }
@@ -505,6 +502,20 @@
           renderPanel();
         }
 
+        function removeLastFromBorder(type) {
+          var border = loadBorder();
+          // 同じタイプで最後に追加したものを1つ外す
+          for (var i = border.length - 1; i >= 0; i--) {
+            if (border[i].type === type) {
+              border.splice(i, 1);
+              break;
+            }
+          }
+          saveBorder(border);
+          renderBorder();
+          renderPanel();
+        }
+
         // --- コレクションパネル ---
         var panelEl  = null;
         var panelOpen = false;
@@ -525,14 +536,22 @@
             var inBorder = border.filter(function(b) { return b.type === type; }).length;
             var canAdd = count > inBorder && border.length < MAX_BORDER;
 
-            html += '<div style="display:flex;align-items:center;gap:12px;padding:8px 0;border-bottom:1px solid #00ff4120">'
+            var canRemove = inBorder > 0;
+            html += '<div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid #00ff4120">'
               + '<span style="font-size:1.6rem">' + def.emoji + '</span>'
               + '<div style="flex:1">'
               +   '<div style="color:' + def.color + ';font-size:0.55rem;margin-bottom:2px">' + def.label + '</div>'
               +   '<div style="font-size:0.5rem;color:#00bb30">所持: ' + count + '  表示中: ' + inBorder + '</div>'
               + '</div>'
+              + '<button data-remove="' + type + '" '
+              +   'style="font-family:inherit;font-size:0.5rem;padding:6px 8px;'
+              +   'background:#0a0e14;border:1px solid ' + (canRemove ? '#ff2244' : '#333') + ';'
+              +   'color:' + (canRemove ? '#ff2244' : '#444') + ';cursor:' + (canRemove ? 'pointer' : 'default') + '"'
+              +   (canRemove ? '' : ' disabled') + '>'
+              +   '- 外す'
+              + '</button>'
               + '<button data-add="' + type + '" '
-              +   'style="font-family:inherit;font-size:0.5rem;padding:6px 10px;'
+              +   'style="font-family:inherit;font-size:0.5rem;padding:6px 8px;'
               +   'background:#0a0e14;border:1px solid ' + (canAdd ? def.color : '#333') + ';'
               +   'color:' + (canAdd ? def.color : '#444') + ';cursor:' + (canAdd ? 'pointer' : 'default') + '"'
               +   (canAdd ? '' : ' disabled') + '>'
@@ -550,8 +569,13 @@
 
           panelEl.querySelectorAll('[data-add]').forEach(function(btn) {
             btn.addEventListener('click', function() {
-              var type = this.dataset.add;
-              addToBorder(type);
+              addToBorder(this.dataset.add);
+            });
+          });
+
+          panelEl.querySelectorAll('[data-remove]').forEach(function(btn) {
+            btn.addEventListener('click', function() {
+              removeLastFromBorder(this.dataset.remove);
             });
           });
         }
