@@ -190,6 +190,9 @@
         box-shadow: 0 0 8px #00ff41 !important;
       }
 
+      /* --- #root をボーダーアイテムより前面に --- */
+      #root { position: relative; z-index: 1; }
+
       /* --- Page header --- */
       .page-header { border-bottom: 1px solid #00ff4128 !important; }
 
@@ -602,7 +605,7 @@
           // ボーダーオーバーレイ
           borderEl = document.createElement('div');
           borderEl.id = 'kuku-border-overlay';
-          borderEl.style.cssText = 'position:fixed;inset:0;pointer-events:none;z-index:10001';
+          borderEl.style.cssText = 'position:fixed;inset:0;pointer-events:none;z-index:0';
           document.body.appendChild(borderEl);
 
           // ボーダーアイテムのスタイル
