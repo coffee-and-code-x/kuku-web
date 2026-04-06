@@ -578,7 +578,7 @@
           // ボーダーオーバーレイ
           borderEl = document.createElement('div');
           borderEl.id = 'kuku-border-overlay';
-          borderEl.style.cssText = 'position:fixed;inset:0;pointer-events:none;z-index:9000';
+          borderEl.style.cssText = 'position:fixed;inset:0;pointer-events:none;z-index:10001';
           document.body.appendChild(borderEl);
 
           // ボーダーアイテムのスタイル
@@ -602,7 +602,7 @@
             'background:#0a0e14', 'border:2px solid #00ff41',
             'color:#00ff41', 'font-size:1.4rem',
             'box-shadow:0 0 12px #00ff4166',
-            'cursor:pointer', 'z-index:9500',
+            'cursor:pointer', 'z-index:10001',
             'display:flex', 'align-items:center', 'justify-content:center',
           ].join(';');
           document.body.appendChild(btn);
@@ -618,7 +618,7 @@
             'padding:16px',
             'font-family:"Press Start 2P",monospace',
             'font-size:0.6rem', 'color:#00ff41',
-            'z-index:9500', 'display:none',
+            'z-index:10001', 'display:none',
             'max-height:70vh', 'overflow-y:auto',
           ].join(';');
           document.body.appendChild(panelEl);
