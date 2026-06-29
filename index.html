@@ -32,7 +32,7 @@
     -->
     <script type="module" crossorigin src="/kuku-web/assets/index-DRYino-_.js"></script>
     <link rel="stylesheet" crossorigin href="/kuku-web/assets/index-C5evV1Ov.css">
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=M+PLUS+Rounded+1c:wght@400;700;800&display=swap">
     <style>
       /* ============================================================
          SPACE INVADERS THEME
@@ -56,24 +56,52 @@
         --radius-btn: 0px;
       }
 
-      /* --- Pixel font on key UI elements --- */
-      h1, h2, h3,
-      .btn, .choice-btn,
+      /* --- Base font: rounded Gothic for Japanese readability --- */
+      body, .page, .page * {
+        font-family: 'M PLUS Rounded 1c', sans-serif !important;
+      }
+
+      /* --- Pixel font on decorative / numeric-heavy elements ---
+         Stacking 'Press Start 2P' first means:
+           ASCII / numbers / symbols → pixel art look
+           Japanese kana / kanji    → M PLUS Rounded 1c (readable)
+         because Press Start 2P has no Japanese glyphs and the browser
+         falls through to the next font in the stack automatically.
+      --- */
       .page-title, .page-title-sub,
       .card,
-      .gacha-ball-name, .gacha-ball-label, .gacha-ball-level,
+      .choice-btn,
       header, .page-header {
-        font-family: 'Press Start 2P', monospace !important;
+        font-family: 'Press Start 2P', 'M PLUS Rounded 1c', sans-serif !important;
       }
-      h1 { font-size: 0.95rem !important; line-height: 1.8 !important; }
-      h2 { font-size: 0.75rem !important; }
-      .btn { font-size: 0.62rem !important; letter-spacing: 0.04em !important; }
-      .choice-btn { font-size: 0.85rem !important; }
+
+      /* --- Japanese-primary elements: rounded Gothic only --- */
+      h1, h2, h3 {
+        font-family: 'M PLUS Rounded 1c', sans-serif !important;
+        font-weight: 800 !important;
+      }
+      .btn {
+        font-family: 'M PLUS Rounded 1c', sans-serif !important;
+        font-weight: 700 !important;
+      }
+      .gacha-ball-name {
+        font-family: 'M PLUS Rounded 1c', sans-serif !important;
+        font-weight: 700 !important;
+      }
+      .gacha-ball-label, .gacha-ball-level {
+        font-family: 'M PLUS Rounded 1c', sans-serif !important;
+        font-weight: 400 !important;
+      }
+
+      h1 { font-size: 1.05rem !important; line-height: 1.7 !important; }
+      h2 { font-size: 0.95rem !important; }
+      .btn { font-size: 0.9rem !important; letter-spacing: 0.02em !important; }
+      .choice-btn { font-size: 1.05rem !important; }
       .page-title { font-size: 0.85rem !important; }
       .page-title-sub { font-size: 0.72rem !important; }
       .card { font-size: 1.1rem !important; }
-      .gacha-ball-name { font-size: 0.85rem !important; }
-      .gacha-ball-label, .gacha-ball-level { font-size: 0.6rem !important; }
+      .gacha-ball-name { font-size: 1rem !important; }
+      .gacha-ball-label, .gacha-ball-level { font-size: 0.75rem !important; }
 
       /* --- Dark background + subtle pixel grid --- */
       body {
@@ -435,7 +463,7 @@
             'background:#0a0e14', 'color:' + def.color,
             'border:2px solid ' + def.color,
             'box-shadow:0 0 16px ' + def.color + '88',
-            'padding:10px 20px', 'font-family:"Press Start 2P",monospace',
+            'padding:10px 20px', 'font-family:"M PLUS Rounded 1c","Press Start 2P",sans-serif',
             'font-size:0.6rem', 'z-index:10000', 'white-space:nowrap',
             'animation:toast-in .3s ease',
           ].join(';');
@@ -543,18 +571,18 @@
             html += '<div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid #00ff4120">'
               + '<span style="font-size:1.6rem">' + def.emoji + '</span>'
               + '<div style="flex:1">'
-              +   '<div style="color:' + def.color + ';font-size:0.55rem;margin-bottom:2px">' + def.label + '</div>'
-              +   '<div style="font-size:0.5rem;color:#00bb30">所持: ' + count + '  表示中: ' + inBorder + '</div>'
+              +   '<div style="color:' + def.color + ';font-size:0.8rem;margin-bottom:4px;font-weight:700">' + def.label + '</div>'
+              +   '<div style="font-size:0.72rem;color:#00bb30">所持: ' + count + '  表示中: ' + inBorder + '</div>'
               + '</div>'
               + '<button data-remove="' + type + '" '
-              +   'style="font-family:inherit;font-size:0.5rem;padding:6px 8px;'
+              +   'style="font-family:inherit;font-size:0.72rem;padding:6px 8px;'
               +   'background:#0a0e14;border:1px solid ' + (canRemove ? '#ff2244' : '#333') + ';'
               +   'color:' + (canRemove ? '#ff2244' : '#444') + ';cursor:' + (canRemove ? 'pointer' : 'default') + '"'
               +   (canRemove ? '' : ' disabled') + '>'
               +   '- 外す'
               + '</button>'
               + '<button data-add="' + type + '" '
-              +   'style="font-family:inherit;font-size:0.5rem;padding:6px 8px;'
+              +   'style="font-family:inherit;font-size:0.72rem;padding:6px 8px;'
               +   'background:#0a0e14;border:1px solid ' + (canAdd ? def.color : '#333') + ';'
               +   'color:' + (canAdd ? def.color : '#444') + ';cursor:' + (canAdd ? 'pointer' : 'default') + '"'
               +   (canAdd ? '' : ' disabled') + '>'
@@ -643,8 +671,8 @@
             'border:2px solid #00ff41',
             'box-shadow:0 0 24px #00ff4155',
             'padding:16px',
-            'font-family:"Press Start 2P",monospace',
-            'font-size:0.6rem', 'color:#00ff41',
+            'font-family:"M PLUS Rounded 1c","Press Start 2P",sans-serif',
+            'font-size:0.85rem', 'color:#00ff41',
             'z-index:10001', 'display:none',
             'max-height:70vh', 'overflow-y:auto',
           ].join(';');
